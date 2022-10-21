@@ -1,8 +1,12 @@
 from email.policy import default
+from pickletools import optimize
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 from categorias.models import Categoria
+import os
+from django.conf import settings
+from PIL import Image
 
 class Post(models.Model):
     titulo_post = models.CharField(max_length= 100, verbose_name= 'Título')
@@ -16,3 +20,31 @@ class Post(models.Model):
     
     def __str__(self) -> str:
         return self.titulo_post
+    
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        
+        self.resize_image(self.imagem_post.name, 800)
+       
+    @staticmethod
+    def resize_image(image, new_width):        
+        image_path = os.path.join(settings.MEDIA_ROOT, image)
+        img = Image.open(image_path)
+        width, height = img.size
+        
+        if width <= new_width:
+            img.close()
+            return
+        
+        new_height = round((new_width * height) / width)
+        
+        new_image = img.resize((new_width, new_height),)
+        
+        new_image.save(
+            image_path,
+            optimize= True,
+            quality = 60,            
+        ) 
+        
+        img.close()
+        
