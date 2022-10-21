@@ -18,6 +18,8 @@ class PostIndex(ListView):
     
     def get_queryset(self):
         qs = super().get_queryset()
+        # melhorar a consulta no banco de dados quando tiver uma foreign key
+        qs = qs.select_related('categoria_post')
         qs = qs.order_by('-id').filter(publicado_post= True)
         
         # Fazendo um filtro na consulta
